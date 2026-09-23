@@ -1,0 +1,12 @@
+print "pd";
+
+for (var i = 0; i < 5; i = i + 1) {
+    for (var j = 0; j < 100; j = j + 20) {
+        print "fd 10";
+        print "pu";
+        print "fd 10";
+        print "pd";
+    }
+
+    print "rt 144";
+}
