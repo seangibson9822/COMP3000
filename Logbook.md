@@ -50,7 +50,7 @@ Work through the Week 2 material on programming languages and the compiler/inter
 
 ## Week 2 – Introduction to Programming Languages
 
-**Completed:** 23 September 2026 12:38am
+**Completed:** 22 September 2026 11:19pm
 
 ### Work Completed
 
@@ -98,3 +98,67 @@ The repeated-character expression showed how a general rule can replace several 
 ### Next Steps
 
 Week 3 workshop
+
+## Week 3 – Lox and Turtle Graphics
+
+**Completed:** 23 September 2026 1:08pm
+
+### Work Completed
+
+This week focused on using **Lox to generate a program written in another language**. I used the supplied `lox.jar` implementation and created a `turtle.lox` file for the workshop exercise.
+
+I first confirmed that Lox was working by running:
+
+```lox
+print "fd 10";
+```
+
+which generated the Logo command:
+
+```text
+fd 10
+```
+
+I then used a Lox loop to generate the instructions for a solid five-point star:
+
+```lox
+for (var i = 0; i < 5; i = i + 1) {
+    print "fd 100";
+    print "rt 144";
+}
+```
+
+Finally, I used nested loops and the Logo `pd` and `pu` commands to generate a dotted version of the star. The inner loop alternated between drawing 10 units and moving 10 units without drawing:
+
+```lox
+for (var i = 0; i < 5; i = i + 1) {
+    for (var j = 0; j < 100; j = j + 20) {
+        print "pd";
+        print "fd 10";
+        print "pu";
+        print "fd 10";
+    }
+
+    print "rt 144";
+}
+```
+
+I copied the generated Logo instructions into the online Logo interpreter and confirmed that it successfully produced a dotted five-point star.
+
+### What I Learned
+
+The main idea from this workshop was that the output of one program can itself be another program. In this case:
+
+**Lox program → generated Logo code → Logo interpreter → drawing**
+
+This also helped reinforce the difference between the two languages. Commands such as `fd`, `rt`, `pd`, and `pu` belong to Logo, while Lox was being used to generate those commands.
+
+### Reflection
+
+The dotted-star exercise made the idea of code generation much clearer. Instead of manually writing a long Logo program, Lox loops were able to generate the repeated instructions automatically.
+
+The final drawing was not visually identical to the workshop example in terms of dash spacing and turtle position, but the generated program still produced the dotted star.
+
+### Next Steps
+
+Move on to Week 4
