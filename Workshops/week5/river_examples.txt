@@ -1,0 +1,21 @@
+Example 1 – Single Catchment
+
+hydro{peak:10, day:1, decay:0.45}
+
+
+Example 2 – Two Rivers Meet
+
+hydro{peak:4, day:1, decay:0.40}
+&
+hydro{peak:2, day:2, decay:0.50}
+
+
+Example 3 – Confluence Flowing Downstream
+
+(
+    hydro{peak:4, day:1, decay:0.40}
+    &
+    hydro{peak:2, day:2, decay:0.50}
+)
+>>
+hydro{peak:3, day:1, decay:0.30}

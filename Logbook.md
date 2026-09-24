@@ -285,3 +285,105 @@ As I completed this workshop retrospectively, I was not able to compare my desig
 ### Next Steps
 
 Week 5 workshop
+
+
+## Week 5 – Combining Rivers and Expression Trees
+
+**Completed:** 24 September 2026 2:23pm
+
+### Work Completed
+
+This log I worked on how multiple rivers should be combined to describe a full river system.
+
+I decided to use two different operators:
+
+```text
+&
+```
+
+represents two rivers meeting at a confluence.
+
+```text
+>>
+```
+
+represents water flowing downstream into another river section.
+
+For example:
+
+```text
+A & B >> C
+```
+
+is interpreted as:
+
+```text
+(A & B) >> C
+```
+
+This means rivers A and B combine first, then their combined flow moves downstream into C.
+
+I chose `&` instead of `+` because I thought it better represented two rivers joining together rather than normal arithmetic. I chose `>>` because it visually shows the direction that the water is moving.
+
+I also decided that `&` should have higher precedence than `>>`. Parentheses can still be used when I want to make the river structure clearer.
+
+### Expression Trees
+
+I looked at how these expressions can be represented as trees.
+
+For:
+
+```text
+(A & B) >> C
+```
+
+the tree is:
+
+```text
+        >>
+       /  \
+      &    C
+     / \
+    A   B
+```
+
+The tree would be evaluated from the bottom up. A and B would first calculate their own flow values. Their flows would then be combined by `&`. The result would then flow downstream into C, where C's own catchment flow would also be added.
+
+This helped me see how the structure of the expression can represent the actual structure of the river system.
+
+### Grammar
+
+I created an initial grammar for the language:
+
+```text
+expression  → route ;
+
+route       → confluence ( ">>" confluence )* ;
+
+confluence  → primary ( "&" primary )* ;
+
+primary     → hydro
+            | "(" expression ")" ;
+
+hydro       → "hydro" "{"
+              "peak" ":" NUMBER ","
+              "day" ":" NUMBER ","
+              "decay" ":" NUMBER
+              "}" ;
+```
+
+This grammar gives `&` higher precedence than `>>` and also allows parentheses to control how rivers are grouped.
+
+I also created several example river expressions ranging from a single catchment to multiple rivers combining and flowing downstream.
+
+### Reflection
+
+I originally considered using normal arithmetic operators such as `+`, but I preferred having separate symbols for rivers combining and rivers flowing downstream.
+
+Using `&` and `>>` makes the expression show more of the river structure rather than making it look like a normal mathematical equation.
+
+As I completed this workshop retrospectively, I used the examples and discussion in the supplied workshop material to compare different ways of representing river combinations.
+
+### Next Steps
+
+For Week 6, I will use this grammar to start building the actual parser in Java. This will require adding the new operators to the scanner, creating the AST expression types and then implementing the parsing rules.
