@@ -31,16 +31,19 @@ public class Lox {
         }
     }
 
-    private static void run(String source) {
+   private static void run(String source) {
+    Scanner scanner = new Scanner(source);
+    List<Token> tokens = scanner.scanTokens();
 
-        Scanner scanner = new Scanner(source);
+    Parser parser = new Parser(tokens);
+    Expr expression = parser.parse();
 
-        List<Token> tokens = scanner.scanTokens();
-
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
+    if (hadError) {
+        return;
     }
+
+    System.out.println(new AstPrinter().print(expression));
+}
 
     static void error(int line, String message) {
 
