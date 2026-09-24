@@ -1,0 +1,11 @@
+// Two upstream rivers meet at a confluence.
+// Their combined flow then continues into
+// the final downstream section.
+
+(
+    hydro{peak:4, day:1, decay:0.40}
+    &
+    hydro{peak:3, day:2, decay:0.55}
+)
+>>
+hydro{peak:2, day:1, decay:0.35}

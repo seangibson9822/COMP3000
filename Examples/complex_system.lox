@@ -1,0 +1,21 @@
+// Two headwater rivers first combine and flow
+// through a middle river section.
+//
+// That flow then meets another tributary before
+// travelling through the final output river.
+
+(
+    (
+        (
+            hydro{peak:6, day:1, decay:0.55}
+            &
+            hydro{peak:4, day:2, decay:0.60}
+        )
+        >>
+        hydro{peak:3, day:2, decay:0.50}
+    )
+    &
+    hydro{peak:5, day:3, decay:0.70}
+)
+>>
+hydro{peak:2, day:1, decay:0.40}

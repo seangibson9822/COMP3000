@@ -1,0 +1,6 @@
+// A simple river with one upstream catchment
+// flowing into a downstream river section.
+
+hydro{peak:5, day:1, decay:0.50}
+>>
+hydro{peak:2, day:2, decay:0.60}
