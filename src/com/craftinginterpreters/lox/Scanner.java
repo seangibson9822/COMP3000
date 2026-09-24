@@ -101,6 +101,10 @@ class Scanner {
                 addToken(PLUS);
                 break;
 
+                case '&':
+                addToken(AMPERSAND);
+                break;
+
             case ';':
                 addToken(SEMICOLON);
                 break;
@@ -122,7 +126,12 @@ class Scanner {
                 break;
 
             case '>':
-                addToken(match('=') ? GREATER_EQUAL : GREATER);
+                if (match('>')) {
+                    addToken(RIGHT_SHIFT);
+                } else {
+                    addToken(match('=') ? GREATER_EQUAL : GREATER);
+                }
+
                 break;
 
             case '/':

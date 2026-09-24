@@ -1,0 +1,5 @@
+hydro{peak:4, day:1, decay:0.40}
+&
+hydro{peak:2, day:2, decay:0.50}
+>>
+hydro{peak:3, day:1, decay:0.30}
