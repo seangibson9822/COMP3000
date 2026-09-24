@@ -162,3 +162,126 @@ The final drawing was not visually identical to the workshop example in terms of
 ### Next Steps
 
 Move on to Week 4
+
+## Week 4 – Water-Flow Literal and Scanner
+
+**Completed:** 24 September 2026 1:42pm
+
+### Work Completed
+
+This week I started designing the water-flow literal for my river language.
+
+The main thing I needed to decide was how a river should describe the way rainfall turns into flow over the following days. I considered a few different formats:
+
+```text
+hydro(10, 1, 0.45)
+```
+
+This was simple, but it was not obvious what each number represented.
+
+```text
+hydro{peak:10, day:1, decay:0.45}
+```
+
+This was slightly longer, but the meaning of each value was much clearer.
+
+```text
+H{10 ^1 ~0.45}
+```
+
+This was more compact, but I thought it would be harder to understand and would add extra symbols to the language without much benefit.
+
+I decided to use:
+
+```text
+hydro{peak:10, day:1, decay:0.45}
+```
+
+The values represent:
+
+- `peak` – the highest flow produced after rainfall
+- `day` – the day when the flow reaches its peak
+- `decay` – how much of the previous day's flow remains after the peak
+
+The idea is that the daily flow can later be calculated using a formula instead of manually entering a value for every day.
+
+For example, if:
+
+```text
+peak = 10
+decay = 0.45
+```
+
+then after the peak the flow would reduce like:
+
+```text
+10 -> 4.5 -> 2.025 -> 0.911...
+```
+
+### Scanner Implementation
+
+As I had not previously completed the Lox scanner from the textbook, I first created the basic scanner files:
+
+- `TokenType.java`
+- `Token.java`
+- `Scanner.java`
+- `Lox.java`
+
+I first tested the normal Lox scanner using:
+
+```lox
+var river = 10 + 2.5;
+print river;
+```
+
+The scanner correctly identified the keywords, identifiers, numbers and symbols.
+
+I then added the new tokens needed for my river literal:
+
+```text
+HYDRO
+PEAK
+DAY
+DECAY
+COLON
+```
+
+I tested the new syntax using:
+
+```text
+hydro{peak:10, day:1, decay:0.45}
+```
+
+The scanner produced:
+
+```text
+HYDRO hydro null
+LEFT_BRACE { null
+PEAK peak null
+COLON : null
+NUMBER 10 10.0
+COMMA , null
+DAY day null
+COLON : null
+NUMBER 1 1.0
+COMMA , null
+DECAY decay null
+COLON : null
+NUMBER 0.45 0.45
+RIGHT_BRACE } null
+EOF null
+```
+
+This confirmed that the scanner can now recognise all parts of the custom water-flow literal.
+
+### Reflection
+
+I chose the named parameter format because it is easy to tell what each value represents just by looking at it. Although it is slightly longer than some of the other designs, I think it is easier to understand.
+
+I also liked the idea of using a mathematical model rather than manually entering the flow for every day. The `peak`, `day` and `decay` values can later be used to calculate how the flow changes over the 10-day period.
+
+As I completed this workshop retrospectively, I was not able to compare my design with another team during class. Instead, I compared it with the different literal designs provided in the workshop material.
+
+### Next Steps
+
+Week 5 workshop
