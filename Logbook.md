@@ -563,3 +563,73 @@ The parser now supports:
 - full-expression validation
 
 The grammar, parser and three final example programs are now working together successfully.
+
+## Log 7 – Evaluating Expressions
+**Date completed:** 14 October 12:35pm 2026  
+
+
+### Workshop focus
+
+This week focused on extending the expression language from Assignment 1 with a tree-walking evaluator. Previously my language could scan and parse river expressions into an AST, but it did not calculate any actual river flow values.
+
+### Design decisions
+
+I decided to provide rainfall as a command-line argument rather than hard-coding it into the interpreter. This keeps the rainfall event separate from the river-system description and allows the same `.lox` program to be tested with different amounts of rainfall.
+
+For example:
+
+Powershell:
+java -cp out com.craftinginterpreters.lox.Lox ".\Examples\area_test.lox" 2
+
+
+runs the program using 2mm of rainfall.
+
+I also extended the existing `hydro` literal with an optional catchment area:
+hydro{peak:10, day:1, decay:0.45, area:2.5}
+
+If `area` is not provided, it defaults to `1.0`, which means my Assignment 1 programs remain valid.
+
+The peak flow is currently calculated as:
+peak flow = peak × rainfall × area
+
+
+### Implementation
+
+I added `AREA` as a new token and updated the scanner and parser to recognise the optional `area` parameter. The `Hydro` AST node was also extended to store the catchment area.
+
+I then created `Interpreter.java`, which implements `Expr.Visitor<Double>`. The interpreter walks the AST and evaluates each expression rather than simply printing its structure.
+
+The evaluator currently supports:
+
+- `hydro` expressions, which calculate a river's flow for the selected day.
+- `&`, which combines the flow from two rivers at a confluence.
+- `>>`, which combines upstream flow with the downstream river's own contribution.
+- Parenthesised expressions.
+
+For Week 7 I evaluate one day at a time, with `currentDay` currently set to day 1. Multi-day evaluation will be added later.
+
+### Testing
+
+I tested:
+hydro{peak:10, day:1, decay:0.45, area:2.5}
+
+
+With 1mm rainfall the interpreter produced:
+
+
+Day 1 output flow: 25.000 L/s
+
+
+With 2mm rainfall it produced:
+
+
+Day 1 output flow: 50.000 L/s
+
+
+I also retested my Assignment 1 examples. `simple_system.lox` produced `5.000 L/s` on day 1 and `confluence_system.lox` produced `6.000 L/s`, confirming that the existing `&`, `>>`, grouping and default area behaviour still work with the evaluator.
+
+### Reflection
+
+The main change this week was moving from representing a river system to actually giving the AST meaning through evaluation. Keeping rainfall as runtime input makes the river description reusable, while adding catchment area allows different rivers to respond differently to the same rainfall event.
+
+The evaluator is still limited to a single selected day. The next stage will be extending this approach so that flows can be calculated and carried over across multiple days.
