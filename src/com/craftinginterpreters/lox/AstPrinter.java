@@ -35,15 +35,13 @@ class AstPrinter implements Expr.Visitor<String> {
     }
 
     @Override
-    public String visitHydroExpr(Expr.Hydro expr) {
-        return "hydro{peak:"
-            + expr.peak
-            + ", day:"
-            + expr.day
-            + ", decay:"
-            + expr.decay
+public String visitHydroExpr(Expr.Hydro expr) {
+    return "hydro{peak:" + expr.peak
+            + ", day:" + expr.day
+            + ", decay:" + expr.decay
+            + ", area:" + expr.area
             + "}";
-    }
+}
 
     private String parenthesize(String name, Expr... exprs) {
         StringBuilder builder = new StringBuilder();

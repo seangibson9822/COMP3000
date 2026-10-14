@@ -81,28 +81,40 @@ class Parser {
     //          "decay" ":" NUMBER
     //          "}" ;
     private Expr hydro() {
-        consume(LEFT_BRACE, "Expect '{' after 'hydro'.");
+    consume(LEFT_BRACE, "Expect '{' after 'hydro'.");
 
-        consume(PEAK, "Expect 'peak'.");
-        consume(COLON, "Expect ':' after 'peak'.");
-        Object peak = consume(NUMBER, "Expect number after 'peak:'.").literal;
+    // Read the peak flow response.
+    consume(PEAK, "Expect 'peak'.");
+    consume(COLON, "Expect ':' after 'peak'.");
+    Object peak = consume(NUMBER, "Expect peak value.").literal;
+    consume(COMMA, "Expect ',' after peak value.");
 
-        consume(COMMA, "Expect ',' after peak value.");
+    // Read the day on which the peak flow occurs.
+    consume(DAY, "Expect 'day'.");
+    consume(COLON, "Expect ':' after 'day'.");
+    Object day = consume(NUMBER, "Expect day value.").literal;
+    consume(COMMA, "Expect ',' after day value.");
 
-        consume(DAY, "Expect 'day'.");
-        consume(COLON, "Expect ':' after 'day'.");
-        Object day = consume(NUMBER, "Expect number after 'day:'.").literal;
+    // Read the proportion of flow retained on each following day.
+    consume(DECAY, "Expect 'decay'.");
+    consume(COLON, "Expect ':' after 'decay'.");
+    Object decay = consume(NUMBER, "Expect decay value.").literal;
 
-        consume(COMMA, "Expect ',' after day value.");
+    // Default area of 1.0 keeps the Assignment 1 syntax valid.
+    Object area = 1.0;
 
-        consume(DECAY, "Expect 'decay'.");
-        consume(COLON, "Expect ':' after 'decay'.");
-        Object decay = consume(NUMBER, "Expect number after 'decay:'.").literal;
-
-        consume(RIGHT_BRACE, "Expect '}' after hydro literal.");
-
-        return new Expr.Hydro(peak, day, decay);
+    // Area is optional. If another comma follows decay,
+    // the parser expects an area parameter.
+    if (match(COMMA)) {
+        consume(AREA, "Expect 'area' after ','.");
+        consume(COLON, "Expect ':' after 'area'.");
+        area = consume(NUMBER, "Expect area value.").literal;
     }
+
+    consume(RIGHT_BRACE, "Expect '}' after hydro literal.");
+
+    return new Expr.Hydro(peak, day, decay, area);
+}
 
     private boolean match(TokenType... types) {
         for (TokenType type : types) {

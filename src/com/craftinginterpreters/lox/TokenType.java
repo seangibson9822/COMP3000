@@ -21,7 +21,7 @@ enum TokenType {
     PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
     // Water-flow Language keywords.
-    HYDRO, PEAK, DAY, DECAY,
+    HYDRO, PEAK, DAY, DECAY, AREA,
 
     EOF 
 }

@@ -12,38 +12,61 @@ public class Lox {
 
     public static void main(String[] args) throws IOException {
 
-        if (args.length != 1) {
-            System.out.println("Usage: jlox <file>");
+        // Assignment 2 takes both a program file and rainfall amount.
+        if (args.length != 2) {
+            System.out.println("Usage: jlox <file> <rainfall_mm>");
             System.exit(64);
         }
 
-        runFile(args[0]);
+        // Convert the rainfall argument from text into a number.
+        double rainfallMm;
+
+        try {
+            rainfallMm = Double.parseDouble(args[1]);
+        } catch (NumberFormatException error) {
+            System.out.println("Rainfall must be a number.");
+            System.exit(64);
+            return;
+        }
+
+        // Run the river program using the supplied rainfall.
+        runFile(args[0], rainfallMm);
     }
 
-    private static void runFile(String path) throws IOException {
+    private static void runFile(String path, double rainfallMm) throws IOException {
 
         byte[] bytes = Files.readAllBytes(Paths.get(path));
 
-        run(new String(bytes, StandardCharsets.UTF_8));
+        // Pass the runtime rainfall value through to the evaluator.
+        run(new String(bytes, StandardCharsets.UTF_8), rainfallMm);
 
         if (hadError) {
             System.exit(65);
         }
     }
 
-   private static void run(String source) {
-    Scanner scanner = new Scanner(source);
-    List<Token> tokens = scanner.scanTokens();
+    private static void run(String source, double rainfallMm) {
 
-    Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+        // Convert the source code into tokens.
+        Scanner scanner = new Scanner(source);
+        List<Token> tokens = scanner.scanTokens();
 
-    if (hadError) {
-        return;
+        // Parse the tokens into an abstract syntax tree.
+        Parser parser = new Parser(tokens);
+        Expr expression = parser.parse();
+
+        // Do not evaluate the program if scanning or parsing failed.
+        if (hadError || expression == null) {
+            return;
+        }
+
+        // Week 7 initially evaluates one day at a time.
+        int currentDay = 1;
+
+        // Walk the AST and calculate the resulting river flow.
+        Interpreter interpreter = new Interpreter(rainfallMm, currentDay);
+        interpreter.interpret(expression);
     }
-
-    System.out.println(new AstPrinter().print(expression));
-}
 
     static void error(int line, String message) {
 

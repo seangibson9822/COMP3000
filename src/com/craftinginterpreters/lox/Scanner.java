@@ -43,6 +43,9 @@ class Scanner {
         keywords.put("peak", PEAK);
         keywords.put("day", DAY);
         keywords.put("decay", DECAY);
+
+        // Catchamnt area is an optional parameter of a hydro literal
+        keywords.put("area", AREA);
     }
 
     Scanner(String source) {

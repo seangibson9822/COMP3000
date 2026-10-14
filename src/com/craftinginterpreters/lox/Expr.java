@@ -71,21 +71,23 @@ abstract class Expr {
     }
 
     static class Hydro extends Expr {
-        final Object peak;
-        final Object day;
-        final Object decay;
+    final Object peak;
+    final Object day;
+    final Object decay;
+    final Object area;
 
-        Hydro(Object peak, Object day, Object decay) {
-            this.peak = peak;
-            this.day = day;
-            this.decay = decay;
-        }
-
-        @Override
-        <R> R accept(Visitor<R> visitor) {
-            return visitor.visitHydroExpr(this);
-        }
+    Hydro(Object peak, Object day, Object decay, Object area) {
+        this.peak = peak;
+        this.day = day;
+        this.decay = decay;
+        this.area = area;
     }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitHydroExpr(this);
+    }
+}
 
     abstract <R> R accept(Visitor<R> visitor);
 }
