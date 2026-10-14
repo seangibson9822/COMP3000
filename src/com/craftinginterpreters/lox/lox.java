@@ -47,26 +47,30 @@ public class Lox {
 
     private static void run(String source, double rainfallMm) {
 
-        // Convert the source code into tokens.
-        Scanner scanner = new Scanner(source);
-        List<Token> tokens = scanner.scanTokens();
+    // Convert the source code into tokens.
+    Scanner scanner = new Scanner(source);
+    List<Token> tokens = scanner.scanTokens();
 
-        // Parse the tokens into an abstract syntax tree.
-        Parser parser = new Parser(tokens);
-        Expr expression = parser.parse();
+    // Parse the tokens into a complete program containing statements.
+    Parser parser = new Parser(tokens);
+    List<Stmt> statements = parser.parseProgram();
 
-        // Do not evaluate the program if scanning or parsing failed.
-        if (hadError || expression == null) {
-            return;
-        }
-
-        // Week 7 initially evaluates one day at a time.
-        int currentDay = 1;
-
-        // Walk the AST and calculate the resulting river flow.
-        Interpreter interpreter = new Interpreter(rainfallMm, currentDay);
-        interpreter.interpret(expression);
+    // Do not attempt evaluation if scanning or parsing failed.
+    if (hadError) {
+        return;
     }
+
+    // For now we evaluate day 1.
+    int currentDay = 1;
+
+    // Execute each statement in the parsed program.
+    Interpreter interpreter = new Interpreter(
+        rainfallMm,
+        currentDay
+    );
+
+    interpreter.interpret(statements);
+}
 
     static void error(int line, String message) {
 

@@ -1,0 +1,14 @@
+var creek =
+    hydro{peak:5, day:1, decay:0.5};
+
+var tributary =
+    hydro{peak:3, day:1, decay:0.4};
+
+var confluence =
+    creek & tributary;
+
+var output =
+    confluence >>
+    hydro{peak:2, day:1, decay:0.6};
+
+print(output);

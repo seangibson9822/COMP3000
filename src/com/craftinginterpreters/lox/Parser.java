@@ -134,17 +134,21 @@ class Parser {
     //
     // Example:
     // hydro{peak:5, day:1, decay:0.5};
+    
     private Stmt expressionStatement() {
 
-        Expr expr = expression();
+    Expr expr = expression();
 
+
+    if (!isAtEnd()) {
         consume(
             SEMICOLON,
             "Expect ';' after expression."
         );
-
-        return new Stmt.Expression(expr);
     }
+
+    return new Stmt.Expression(expr);
+}
 
     // route -> confluence ( ">>" confluence )* ;
     private Expr route() {

@@ -35,12 +35,20 @@ class AstPrinter implements Expr.Visitor<String> {
     }
 
     @Override
-public String visitHydroExpr(Expr.Hydro expr) {
-    return "hydro{peak:" + expr.peak
-            + ", day:" + expr.day
-            + ", decay:" + expr.decay
-            + ", area:" + expr.area
+    public String visitHydroExpr(Expr.Hydro expr) {
+        return "hydro{peak:"
+            + expr.peak
+            + ", day:"
+            + expr.day
+            + ", decay:"
+            + expr.decay
             + "}";
+    }
+
+    @Override
+public String visitVariableExpr(Expr.Variable expr) {
+    // Variables are represented by their identifier name.
+    return expr.name.lexeme;
 }
 
     private String parenthesize(String name, Expr... exprs) {

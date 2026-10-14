@@ -10,6 +10,9 @@ abstract class Expr {
 
         // Custom river-language expression.
         R visitHydroExpr(Hydro expr);
+
+        // Refers to a previously declared variable.
+        R visitVariableExpr(Variable expr);
     }
 
     static class Binary extends Expr {
@@ -71,23 +74,43 @@ abstract class Expr {
     }
 
     static class Hydro extends Expr {
-    final Object peak;
-    final Object day;
-    final Object decay;
-    final Object area;
+        final Object peak;
+        final Object day;
+        final Object decay;
+        final Object area;
 
-    Hydro(Object peak, Object day, Object decay, Object area) {
-        this.peak = peak;
-        this.day = day;
-        this.decay = decay;
-        this.area = area;
+        Hydro(Object peak, Object day, Object decay, Object area) {
+            this.peak = peak;
+            this.day = day;
+            this.decay = decay;
+            this.area = area;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitHydroExpr(this);
+        }
     }
 
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-        return visitor.visitHydroExpr(this);
+    // Represents the use of a previously declared variable.
+    //
+    // Example:
+    // var creek = hydro{...};
+    // print(creek);
+    //
+    // The identifier "creek" becomes an Expr.Variable node.
+    static class Variable extends Expr {
+        final Token name;
+
+        Variable(Token name) {
+            this.name = name;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVariableExpr(this);
+        }
     }
-}
 
     abstract <R> R accept(Visitor<R> visitor);
 }

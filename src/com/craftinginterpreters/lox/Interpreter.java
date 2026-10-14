@@ -1,42 +1,54 @@
 package com.craftinginterpreters.lox;
 
-// Walks through the parsed expression tree and calculates
+import java.util.List;
+
+// Walks through the parsed syntax tree and calculates
 // the resulting river flow for a particular day.
-class Interpreter implements Expr.Visitor<Double> {
+class Interpreter implements Expr.Visitor<Double>, Stmt.Visitor<Void> {
 
     // Rainfall is supplied when the interpreter is created.
     // This keeps rainfall separate from the river description itself.
     private final double rainfallMm;
 
-    // For Week 7 we evaluate one day at a time.
+    // For now the evaluator works on one selected day.
     // Multi-day evaluation will be added later.
     private final int currentDay;
+
+    // Stores variables declared by the river program.
+    private final Environment environment = new Environment();
 
     Interpreter(double rainfallMm, int currentDay) {
         this.rainfallMm = rainfallMm;
         this.currentDay = currentDay;
     }
 
-    // Start evaluation from the root of the AST.
-    // The final value represents the output flow of the river system.
-    void interpret(Expr expression) {
-        double result = evaluate(expression);
+    // Execute every statement in the program in order.
+    void interpret(List<Stmt> statements) {
 
-        System.out.printf(
-                "Day %d output flow: %.3f L/s%n",
-                currentDay,
-                result
-        );
+        for (Stmt statement : statements) {
+
+            // A null statement can occur after a parser error.
+            // Lox normally stops before interpretation when hadError is true,
+            // but this protects the interpreter as well.
+            if (statement != null) {
+                execute(statement);
+            }
+        }
     }
 
-    // Calls the correct visitor method for the expression type.
-    // This is what makes the interpreter a tree-walking evaluator.
+    // Execute one statement using the statement visitor.
+    private void execute(Stmt stmt) {
+        stmt.accept(this);
+    }
+
+    // Evaluate one expression using the expression visitor.
     private double evaluate(Expr expr) {
         return expr.accept(this);
     }
 
     @Override
     public Double visitHydroExpr(Expr.Hydro expr) {
+
         // Read the values stored in the hydro AST node.
         double peak = (double) expr.peak;
         double peakDay = (double) expr.day;
@@ -51,54 +63,53 @@ class Interpreter implements Expr.Visitor<Double> {
         // Rainfall and catchment area scale the peak response.
         double peakFlow = peak * rainfallMm * area;
 
-        // On the peak day, the complete peak flow is produced.
+        // On the peak day, return the complete peak response.
         if (currentDay == peakDay) {
             return peakFlow;
         }
 
-        // Work out how many days have passed since the peak.
+        // Determine how many days have passed since the peak.
         int daysAfterPeak = currentDay - (int) peakDay;
 
-        // After the peak, each day's flow is the configured
-        // decay proportion of the previous day's flow.
+        // Each following day keeps the configured proportion
+        // of the previous day's flow.
         return peakFlow * Math.pow(decay, daysAfterPeak);
     }
 
     @Override
     public Double visitBinaryExpr(Expr.Binary expr) {
-        // Evaluate both sides of the binary expression first.
+
+        // Evaluate both river expressions first.
         double left = evaluate(expr.left);
         double right = evaluate(expr.right);
 
         switch (expr.operator.type) {
 
             // A & B represents two rivers meeting at a confluence.
-            // Their flows are combined.
             case AMPERSAND:
                 return left + right;
 
-            // A >> B represents A flowing downstream into B.
-            // The upstream flow and B's own contribution are combined.
+            // A >> B represents upstream flow entering B.
             case RIGHT_SHIFT:
                 return left + right;
 
             default:
                 throw new RuntimeException(
-                        "Unknown river operator: " + expr.operator.lexeme
+                    "Unknown river operator: " + expr.operator.lexeme
                 );
         }
     }
 
     @Override
     public Double visitGroupingExpr(Expr.Grouping expr) {
-        // Parentheses do not change the value,
-        // so evaluate the expression contained inside them.
+
+        // Parentheses only control grouping.
         return evaluate(expr.expression);
     }
 
     @Override
     public Double visitLiteralExpr(Expr.Literal expr) {
-        // Standard numeric literals are retained from the Lox AST.
+
         if (expr.value instanceof Double) {
             return (Double) expr.value;
         }
@@ -108,7 +119,7 @@ class Interpreter implements Expr.Visitor<Double> {
 
     @Override
     public Double visitUnaryExpr(Expr.Unary expr) {
-        // Unary expressions are retained from the original Lox AST.
+
         double right = evaluate(expr.right);
 
         if (expr.operator.type == TokenType.MINUS) {
@@ -116,5 +127,54 @@ class Interpreter implements Expr.Visitor<Double> {
         }
 
         return right;
+    }
+
+    @Override
+    public Double visitVariableExpr(Expr.Variable expr) {
+
+        // Look up the value that was stored when the variable
+        // was originally declared.
+        return environment.get(expr.name);
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+
+        // Evaluate the expression on the right-hand side first.
+        double value = evaluate(stmt.initializer);
+
+        // Store the resulting flow under the variable's name.
+        environment.define(
+            stmt.name.lexeme,
+            value
+        );
+
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+
+        // Evaluate the expression being printed.
+        double value = evaluate(stmt.expression);
+
+        // Display the flow value for the current simulation day.
+        System.out.printf(
+            "Day %d flow: %.3f L/s%n",
+            currentDay,
+            value
+        );
+
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+
+        // Evaluate the expression even though its result
+        // is not explicitly printed.
+        evaluate(stmt.expression);
+
+        return null;
     }
 }
