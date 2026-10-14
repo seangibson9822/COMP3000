@@ -716,3 +716,64 @@ This confirmed that variables are stored and retrieved correctly and that rainfa
 This change made the language much easier to read because complex river systems no longer need to be written as one large nested expression. Individual river sections can now be named and combined later.
 
 It also changed the interpreter from evaluating one expression into executing a sequence of program statements. This provides a better foundation for the later Assignment 2 requirements, including multi-day evaluation and dams.
+
+
+## Log 9 – Dam Syntax and Parsing
+**Date completed:** 14 October 4:34pm 2026  
+
+### Workshop focus
+The Week 10 workshop introduced dams as the motivation for control-flow-style behaviour in the river language. Rather than implementing general-purpose loops or conditions, the task was to design syntax that could represent a human-controlled dam and extend the parser to recognise it.
+
+
+### Dam language design
+I designed a domain-specific dam expression rather than adding general-purpose `if` and `else` statements.
+
+An example is:
+
+
+var reservoir =
+    dam(creek) {
+        capacity:100,
+        initial:40,
+        low:30,
+        high:80,
+        rain:20,
+        lowRelease:0,
+        normalRelease:0.5,
+        highRelease:1
+    };
+
+
+The expression inside `dam(...)` represents the incoming river flow.
+
+The dam also stores configuration values for its capacity, initial water level, low and high water thresholds, rainfall threshold, and three release fractions.
+
+The release fractions are intended to represent different operating conditions:
+
+- `lowRelease` – release when the dam level is low
+- `normalRelease` – release during normal conditions
+- `highRelease` – release during high-water or heavy-rain conditions
+
+The actual release algorithm is deliberately not implemented yet because Week 10 only requires the syntax and parser design.
+
+### Implementation
+I added dam-related keyword tokens to the scanner and created a new `Expr.Dam` AST node.
+
+The parser was extended so `dam(...) { ... }` can appear anywhere a normal river expression can appear. The parsed node stores the incoming flow expression together with all dam configuration values.
+
+`AstPrinter` and `Interpreter` were also updated with visitor methods for the new AST node. The interpreter method currently throws an intentional runtime exception because dam evaluation will be implemented later.
+
+### Testing
+I created `dam_test.lox` containing a river variable and a dam using that river as its inflow.
+
+Running the program successfully passed scanning and parsing and reached the interpreter, which produced:
+
+Dam evaluation has not been implemented yet.
+
+
+This confirms that the dam syntax is recognised, parsed, stored as an `Expr.Dam`, and passed correctly to the interpreter.
+
+### Reflection
+Using a dedicated `dam` expression keeps the language focused on the river-modelling domain instead of adding general-purpose control flow that is not currently needed.
+
+The parameters also provide a clear foundation for later dam evaluation because the dam can eventually base its release behaviour on stored water level, rainfall, and incoming river flow.
