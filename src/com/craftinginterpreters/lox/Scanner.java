@@ -46,6 +46,19 @@ class Scanner {
 
         // Catchamnt area is an optional parameter of a hydro literal
         keywords.put("area", AREA);
+
+
+        // Dam keywords used by the Week 10 dam syntax.
+        keywords.put("dam", DAM);
+        keywords.put("capacity", CAPACITY);
+        keywords.put("initial", INITIAL);
+        keywords.put("low", LOW);
+        keywords.put("high", HIGH);
+        keywords.put("rain", RAIN);
+
+        keywords.put("lowRelease", LOW_RELEASE);
+        keywords.put("normalRelease", NORMAL_RELEASE);
+        keywords.put("highRelease", HIGH_RELEASE);
     }
 
     Scanner(String source) {

@@ -23,5 +23,9 @@ enum TokenType {
     // Water-flow Language keywords.
     HYDRO, PEAK, DAY, DECAY, AREA,
 
+    // Dam language keywords.
+    DAM, CAPACITY, INITIAL, LOW, HIGH, RAIN,
+    LOW_RELEASE, NORMAL_RELEASE, HIGH_RELEASE,
+
     EOF 
 }

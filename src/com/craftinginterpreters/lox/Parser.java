@@ -186,38 +186,45 @@ class Parser {
         return expr;
     }
 
+  
     // primary -> hydro
-    //          | IDENTIFIER
-    //          | "(" expression ")" ;
-    private Expr primary() {
+//          | dam
+//          | IDENTIFIER
+//          | "(" expression ")" ;
+private Expr primary() {
 
-        // Parse a hydro river-response literal.
-        if (match(HYDRO)) {
-            return hydro();
-        }
-
-        // An identifier refers to a previously declared variable.
-        if (match(IDENTIFIER)) {
-            return new Expr.Variable(previous());
-        }
-
-        // Parentheses group an expression.
-        if (match(LEFT_PAREN)) {
-            Expr expr = expression();
-
-            consume(
-                RIGHT_PAREN,
-                "Expect ')' after expression."
-            );
-
-            return new Expr.Grouping(expr);
-        }
-
-        throw error(
-            peek(),
-            "Expect river expression."
-        );
+    // Parse a normal river-response literal.
+    if (match(HYDRO)) {
+        return hydro();
     }
+
+    // Parse a human-controlled dam.
+    if (match(DAM)) {
+        return dam();
+    }
+
+    // An identifier refers to a previously declared variable.
+    if (match(IDENTIFIER)) {
+        return new Expr.Variable(previous());
+    }
+
+    // Parentheses group an expression.
+    if (match(LEFT_PAREN)) {
+        Expr expr = expression();
+
+        consume(
+            RIGHT_PAREN,
+            "Expect ')' after expression."
+        );
+
+        return new Expr.Grouping(expr);
+    }
+
+    throw error(
+        peek(),
+        "Expect river expression."
+    );
+}
 
     // hydro -> "hydro" "{"
     //          "peak" ":" NUMBER ","
@@ -327,6 +334,218 @@ class Parser {
             area
         );
     }
+
+// dam -> "dam" "(" expression ")" "{"
+//        "capacity" ":" NUMBER ","
+//        "initial" ":" NUMBER ","
+//        "low" ":" NUMBER ","
+//        "high" ":" NUMBER ","
+//        "rain" ":" NUMBER ","
+//        "lowRelease" ":" NUMBER ","
+//        "normalRelease" ":" NUMBER ","
+//        "highRelease" ":" NUMBER
+//        "}" ;
+private Expr dam() {
+
+    // The expression inside dam(...) supplies the incoming flow.
+    consume(
+        LEFT_PAREN,
+        "Expect '(' after 'dam'."
+    );
+
+    Expr inflow = expression();
+
+    consume(
+        RIGHT_PAREN,
+        "Expect ')' after dam inflow."
+    );
+
+    consume(
+        LEFT_BRACE,
+        "Expect '{' after dam inflow."
+    );
+
+    // Maximum amount of water the dam can store.
+    consume(
+        CAPACITY,
+        "Expect 'capacity'."
+    );
+
+    consume(
+        COLON,
+        "Expect ':' after 'capacity'."
+    );
+
+    Object capacity = consume(
+        NUMBER,
+        "Expect capacity value."
+    ).literal;
+
+    consume(
+        COMMA,
+        "Expect ',' after capacity value."
+    );
+
+    // Starting water level in the dam.
+    consume(
+        INITIAL,
+        "Expect 'initial'."
+    );
+
+    consume(
+        COLON,
+        "Expect ':' after 'initial'."
+    );
+
+    Object initial = consume(
+        NUMBER,
+        "Expect initial value."
+    ).literal;
+
+    consume(
+        COMMA,
+        "Expect ',' after initial value."
+    );
+
+    // Lower water-level threshold.
+    consume(
+        LOW,
+        "Expect 'low'."
+    );
+
+    consume(
+        COLON,
+        "Expect ':' after 'low'."
+    );
+
+    Object low = consume(
+        NUMBER,
+        "Expect low threshold."
+    ).literal;
+
+    consume(
+        COMMA,
+        "Expect ',' after low threshold."
+    );
+
+    // Upper water-level threshold.
+    consume(
+        HIGH,
+        "Expect 'high'."
+    );
+
+    consume(
+        COLON,
+        "Expect ':' after 'high'."
+    );
+
+    Object high = consume(
+        NUMBER,
+        "Expect high threshold."
+    ).literal;
+
+    consume(
+        COMMA,
+        "Expect ',' after high threshold."
+    );
+
+    // Rainfall level considered significant by the dam policy.
+    consume(
+        RAIN,
+        "Expect 'rain'."
+    );
+
+    consume(
+        COLON,
+        "Expect ':' after 'rain'."
+    );
+
+    Object rain = consume(
+        NUMBER,
+        "Expect rain threshold."
+    ).literal;
+
+    consume(
+        COMMA,
+        "Expect ',' after rain threshold."
+    );
+
+    // Release fraction used when the dam level is low.
+    consume(
+        LOW_RELEASE,
+        "Expect 'lowRelease'."
+    );
+
+    consume(
+        COLON,
+        "Expect ':' after 'lowRelease'."
+    );
+
+    Object lowRelease = consume(
+        NUMBER,
+        "Expect low release fraction."
+    ).literal;
+
+    consume(
+        COMMA,
+        "Expect ',' after low release fraction."
+    );
+
+    // Release fraction used during normal conditions.
+    consume(
+        NORMAL_RELEASE,
+        "Expect 'normalRelease'."
+    );
+
+    consume(
+        COLON,
+        "Expect ':' after 'normalRelease'."
+    );
+
+    Object normalRelease = consume(
+        NUMBER,
+        "Expect normal release fraction."
+    ).literal;
+
+    consume(
+        COMMA,
+        "Expect ',' after normal release fraction."
+    );
+
+    // Release fraction used during high-water conditions.
+    consume(
+        HIGH_RELEASE,
+        "Expect 'highRelease'."
+    );
+
+    consume(
+        COLON,
+        "Expect ':' after 'highRelease'."
+    );
+
+    Object highRelease = consume(
+        NUMBER,
+        "Expect high release fraction."
+    ).literal;
+
+    consume(
+        RIGHT_BRACE,
+        "Expect '}' after dam configuration."
+    );
+
+    return new Expr.Dam(
+        inflow,
+        capacity,
+        initial,
+        low,
+        high,
+        rain,
+        lowRelease,
+        normalRelease,
+        highRelease
+    );
+}
+
 
     // Checks whether the current token matches any
     // of the supplied token types.

@@ -138,6 +138,15 @@ class Interpreter implements Expr.Visitor<Double>, Stmt.Visitor<Void> {
     }
 
     @Override
+public Double visitDamExpr(Expr.Dam expr) {
+
+   
+    throw new RuntimeException(
+        "Dam evaluation has not been implemented yet."
+    );
+}
+
+    @Override
     public Void visitVarStmt(Stmt.Var stmt) {
 
         // Evaluate the expression on the right-hand side first.

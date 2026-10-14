@@ -13,6 +13,8 @@ abstract class Expr {
 
         // Refers to a previously declared variable.
         R visitVariableExpr(Variable expr);
+
+        R visitDamExpr(Dam expr);
     }
 
     static class Binary extends Expr {
@@ -111,6 +113,65 @@ abstract class Expr {
             return visitor.visitVariableExpr(this);
         }
     }
+
+    // Represents a human-controlled dam.
+//
+// Example:
+// dam(creek) {
+//     capacity: 100,
+//     initial: 40,
+//     low: 30,
+//     high: 80,
+//     rain: 20,
+//     lowRelease: 0,
+//     normalRelease: 0.5,
+//     highRelease: 1
+// }
+static class Dam extends Expr {
+
+    // River expression supplying water to the dam.
+    final Expr inflow;
+
+    // Dam configuration values.
+    final Object capacity;
+    final Object initial;
+    final Object low;
+    final Object high;
+    final Object rain;
+
+    // Fractions of inflow released under
+    // different operating conditions.
+    final Object lowRelease;
+    final Object normalRelease;
+    final Object highRelease;
+
+    Dam(
+        Expr inflow,
+        Object capacity,
+        Object initial,
+        Object low,
+        Object high,
+        Object rain,
+        Object lowRelease,
+        Object normalRelease,
+        Object highRelease
+    ) {
+        this.inflow = inflow;
+        this.capacity = capacity;
+        this.initial = initial;
+        this.low = low;
+        this.high = high;
+        this.rain = rain;
+        this.lowRelease = lowRelease;
+        this.normalRelease = normalRelease;
+        this.highRelease = highRelease;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitDamExpr(this);
+    }
+}
 
     abstract <R> R accept(Visitor<R> visitor);
 }

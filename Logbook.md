@@ -633,3 +633,86 @@ I also retested my Assignment 1 examples. `simple_system.lox` produced `5.000 L/
 The main change this week was moving from representing a river system to actually giving the AST meaning through evaluation. Keeping rainfall as runtime input makes the river description reusable, while adding catchment area allows different rivers to respond differently to the same rainfall event.
 
 The evaluator is still limited to a single selected day. The next stage will be extending this approach so that flows can be calculated and carried over across multiple days.
+
+
+## Log 8 – Variables and Tree-Walking Evaluation
+**Date completed:** 14 October  3:41pm 2026  
+
+
+### Workshop focus
+This workshop extended the river language from evaluating a single expression to supporting programs containing variables and statements. The main goal was to allow river expressions to be stored under variable names, reused in later expressions, and printed using an explicit `print(...)` statement.
+
+
+### Parser changes
+I extended the parser to support multiple statements through a new `parseProgram()` method.
+
+The language now supports variable declarations such as:
+
+
+var creek = hydro{peak:5, day:1, decay:0.5};
+
+and print statements such as:
+
+print(creek);
+
+
+Identifiers can also now appear inside river expressions. For example:
+
+var combined = creek & tributary;
+
+
+The existing river operators `&` and `>>` continue to use the precedence rules developed for Assignment 1.
+
+### Statement and variable representation
+I added a `Stmt` AST hierarchy containing:
+
+- `Stmt.Var` for variable declarations
+- `Stmt.Print` for explicit output
+- `Stmt.Expression` for normal expression statements
+
+I also added `Expr.Variable` so that references to previously declared variables can be represented in the expression tree.
+
+### Variable evaluation
+I added an `Environment` class that maps variable names to their evaluated flow values.
+
+When a variable is declared, the interpreter evaluates its river expression and stores the result. When the variable is later referenced, the interpreter retrieves the stored value from the environment.
+
+The interpreter was extended to walk both expression and statement nodes.
+
+### Testing
+I created `variables_test.lox` containing multiple named river sections:
+
+
+var creek =
+    hydro{peak:5, day:1, decay:0.5};
+
+var tributary =
+    hydro{peak:3, day:1, decay:0.4};
+
+var confluence =
+    creek & tributary;
+
+var output =
+    confluence >>
+    hydro{peak:2, day:1, decay:0.6};
+
+print(output);
+
+
+With rainfall of `1 mm`, the program produced:
+
+
+Day 1 flow: 10.000 L/s
+
+
+With rainfall of `2 mm`, it produced:
+
+Day 1 flow: 20.000 L/s
+
+
+This confirmed that variables are stored and retrieved correctly and that rainfall continues to affect the resulting river flow.
+
+### Reflection
+This change made the language much easier to read because complex river systems no longer need to be written as one large nested expression. Individual river sections can now be named and combined later.
+
+It also changed the interpreter from evaluating one expression into executing a sequence of program statements. This provides a better foundation for the later Assignment 2 requirements, including multi-day evaluation and dams.

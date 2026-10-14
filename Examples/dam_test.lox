@@ -1,0 +1,14 @@
+var creek =
+    hydro{peak:5, day:1, decay:0.5, area:2};
+
+var reservoir =
+    dam(creek) {
+        capacity:100,
+        initial:40,
+        low:30,
+        high:80,
+        rain:20,
+        lowRelease:0,
+        normalRelease:0.5,
+        highRelease:1
+    };

@@ -51,6 +51,13 @@ public String visitVariableExpr(Expr.Variable expr) {
     return expr.name.lexeme;
 }
 
+@Override
+public String visitDamExpr(Expr.Dam expr) {
+    // For Week 10 we only need the printer to recognise
+    // that a dam exists in the AST.
+    return "(dam " + expr.inflow.accept(this) + ")";
+}
+
     private String parenthesize(String name, Expr... exprs) {
         StringBuilder builder = new StringBuilder();
 
