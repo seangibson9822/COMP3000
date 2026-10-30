@@ -1,0 +1,9 @@
+var creek =
+    hydro{peak:5, day:1, decay:0.5, area:2};
+
+var reservoir =
+    dam(creek) {
+        release 0 otherwise;
+    };
+
+print(reservoir);
