@@ -140,9 +140,114 @@ class Interpreter implements Expr.Visitor<Double>, Stmt.Visitor<Void> {
     @Override
 public Double visitDamExpr(Expr.Dam expr) {
 
-   
+    // First calculate the amount of water entering the dam.
+    // This can be a hydro expression, variable, confluence,
+    // or another river expression.
+    double inflow = evaluate(expr.inflow);
+
+    // Week 11 dams store their management behaviour
+    // as an ordered list of release rules.
+    if (expr.rules == null) {
+        throw new RuntimeException(
+            "Dam does not contain any management rules."
+        );
+    }
+
+    // Check each rule in the same order that
+    // the user wrote it in the source program.
+    for (Expr.DamRule rule : expr.rules) {
+
+        // The release value represents the proportion
+        // of incoming water which leaves the dam.
+        double release =
+            (double) rule.release;
+
+        // A release fraction must stay between 0 and 1.
+        //
+        // 0   = release no water
+        // 0.5 = release half
+        // 1   = release all water
+        if (release < 0 || release > 1) {
+            throw new RuntimeException(
+                "Dam release fraction must be between 0 and 1."
+            );
+        }
+
+        // "otherwise" is the fallback rule.
+        // If none of the earlier conditions matched,
+        // use this release fraction.
+        if (rule.otherwise) {
+            return inflow * release;
+        }
+
+        // Work out which value this rule should inspect.
+        double sourceValue;
+
+        switch (rule.source.type) {
+
+            // Use today's rainfall supplied to the interpreter.
+            case RAIN:
+                sourceValue = rainfallMm;
+                break;
+
+            // Use the amount of water currently entering the dam.
+            case INFLOW:
+                sourceValue = inflow;
+                break;
+
+            default:
+                throw new RuntimeException(
+                    "Unknown dam rule source: "
+                    + rule.source.lexeme
+                );
+        }
+
+        double threshold =
+            (double) rule.threshold;
+
+        // Test the comparison written in the rule.
+        boolean matches;
+
+        switch (rule.operator.type) {
+
+            case GREATER:
+                matches =
+                    sourceValue > threshold;
+                break;
+
+            case GREATER_EQUAL:
+                matches =
+                    sourceValue >= threshold;
+                break;
+
+            case LESS:
+                matches =
+                    sourceValue < threshold;
+                break;
+
+            case LESS_EQUAL:
+                matches =
+                    sourceValue <= threshold;
+                break;
+
+            default:
+                throw new RuntimeException(
+                    "Unknown dam comparison operator: "
+                    + rule.operator.lexeme
+                );
+        }
+
+        // The first matching rule determines
+        // how much water leaves the dam.
+        if (matches) {
+            return inflow * release;
+        }
+    }
+
+    // The parser requires an otherwise rule,
+    // so reaching here indicates an invalid dam AST.
     throw new RuntimeException(
-        "Dam evaluation has not been implemented yet."
+        "Dam has no matching release rule."
     );
 }
 

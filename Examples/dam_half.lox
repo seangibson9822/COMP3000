@@ -5,3 +5,5 @@ var reservoir =
     dam(creek) {
         release 0.5 otherwise;
     };
+
+    print(reservoir);

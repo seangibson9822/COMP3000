@@ -6,3 +6,5 @@ var reservoir =
         release 1 when rain > 10;
         release 0.5 otherwise;
     };
+
+    print(reservoir);
