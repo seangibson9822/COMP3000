@@ -779,7 +779,7 @@ Using a dedicated `dam` expression keeps the language focused on the river-model
 The parameters also provide a clear foundation for later dam evaluation because the dam can eventually base its release behaviour on stored water level, rainfall, and incoming river flow.
 
 
-## Week 11 – Dam Semantics and Management Rules
+## Log 10 – Dam Semantics and Management Rules
 
 **Date completed:** 30 October 2026  1:50pm
 
@@ -918,3 +918,80 @@ This is expected because `visitDamExpr()` is still deliberately acting as a plac
 The new rule-based approach is more flexible than the fixed Week 10 dam parameters. Different management strategies can now be represented using the same syntax instead of requiring a new field for every possible behaviour.
 
 It also gives a clear path toward the final Assignment 2 requirements, because the interpreter can later evaluate rules based on rainfall and incoming flow before determining the downstream output.
+
+## Log 11 – Dam Evaluation
+
+**Date completed:** 30 October 2026 2:30pm
+
+### Dam evaluation
+
+I extended the interpreter so the rule-based dam syntax created in Week 11 can now be executed.
+
+The interpreter first evaluates the river expression entering the dam, then checks each management rule in the same order it appears in the source program.
+
+For example:
+
+```lox
+dam(creek) {
+    release 1 when rain > 10;
+    release 0.5 otherwise;
+}
+```
+
+The interpreter checks the current rainfall. If it is greater than 10 mm, all of the incoming water is released. Otherwise, half of the incoming flow is released.
+
+The same rule system can inspect either `rain` or `inflow`.
+
+### Release fractions
+
+Release values represent the proportion of incoming water which leaves the dam:
+
+```text
+0    = no water released
+0.5  = half released
+1    = all water released
+```
+
+The interpreter also checks that release values stay between `0` and `1`. Values outside this range are treated as invalid dam behaviour.
+
+### Testing
+
+I tested the three dam programs created in Week 11.
+
+`dam_half.lox` with rainfall `1`:
+
+```text
+Day 1 flow: 5.000 L/s
+```
+
+`dam_rain.lox` with rainfall `15`:
+
+```text
+Day 1 flow: 150.000 L/s
+```
+
+The same program with rainfall `5` used the fallback rule:
+
+```text
+Day 1 flow: 25.000 L/s
+```
+
+`dam_inflow.lox` with rainfall `2`:
+
+```text
+Day 1 flow: 5.000 L/s
+```
+
+I also reran the previous variable test:
+
+```text
+Day 1 flow: 10.000 L/s
+```
+
+This confirmed that adding dam evaluation did not break the existing river and variable evaluation.
+
+### Reflection
+
+The dam system is now able to make runtime decisions based on both rainfall and incoming flow. This gives the language behaviour closer to the original water-management goal, because the same dam can respond differently depending on current conditions.
+
+The next major task is multi-day evaluation so flows can carry over from previous days instead of only evaluating one day at a time.

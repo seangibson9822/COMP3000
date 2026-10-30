@@ -10,71 +10,154 @@ public class Lox {
 
     static boolean hadError = false;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args)
+        throws IOException {
 
-        // Assignment 2 takes both a program file and rainfall amount.
-        if (args.length != 2) {
-            System.out.println("Usage: jlox <file> <rainfall_mm>");
+        // The interpreter requires:
+        //
+        // 1. A source file.
+        // 2. Rainfall in millimetres.
+        //
+        // A third optional argument controls
+        // how many days should be simulated.
+        if (args.length < 2 || args.length > 3) {
+
+            System.out.println(
+                "Usage: jlox <file> <rainfall-mm> [days]"
+            );
+
             System.exit(64);
         }
 
-        // Convert the rainfall argument from text into a number.
         double rainfallMm;
+        int days = 1;
 
         try {
-            rainfallMm = Double.parseDouble(args[1]);
+
+            // Rainfall is supplied externally rather
+            // than being hard-coded into the program.
+            rainfallMm =
+                Double.parseDouble(args[1]);
+
+            // Existing commands still simulate one day.
+            //
+            // A third argument enables multi-day
+            // simulation when required.
+            if (args.length == 3) {
+                days =
+                    Integer.parseInt(args[2]);
+            }
+
         } catch (NumberFormatException error) {
-            System.out.println("Rainfall must be a number.");
+
+            System.out.println(
+                "Rainfall must be a number and days must be an integer."
+            );
+
             System.exit(64);
             return;
         }
 
-        // Run the river program using the supplied rainfall.
-        runFile(args[0], rainfallMm);
+        // A simulation must contain at least one day.
+        if (days < 1) {
+
+            System.out.println(
+                "Days must be at least 1."
+            );
+
+            System.exit(64);
+        }
+
+        runFile(
+            args[0],
+            rainfallMm,
+            days
+        );
     }
 
-    private static void runFile(String path, double rainfallMm) throws IOException {
+    private static void runFile(
+        String path,
+        double rainfallMm,
+        int days
+    ) throws IOException {
 
-        byte[] bytes = Files.readAllBytes(Paths.get(path));
+        byte[] bytes =
+            Files.readAllBytes(
+                Paths.get(path)
+            );
 
-        // Pass the runtime rainfall value through to the evaluator.
-        run(new String(bytes, StandardCharsets.UTF_8), rainfallMm);
+        run(
+            new String(
+                bytes,
+                StandardCharsets.UTF_8
+            ),
+            rainfallMm,
+            days
+        );
 
         if (hadError) {
             System.exit(65);
         }
     }
 
-    private static void run(String source, double rainfallMm) {
+    private static void run(
+        String source,
+        double rainfallMm,
+        int days
+    ) {
 
-    // Convert the source code into tokens.
-    Scanner scanner = new Scanner(source);
-    List<Token> tokens = scanner.scanTokens();
+        // Scan the source program once.
+        Scanner scanner =
+            new Scanner(source);
 
-    // Parse the tokens into a complete program containing statements.
-    Parser parser = new Parser(tokens);
-    List<Stmt> statements = parser.parseProgram();
+        List<Token> tokens =
+            scanner.scanTokens();
 
-    // Do not attempt evaluation if scanning or parsing failed.
-    if (hadError) {
-        return;
+        // Parse the program once into its AST.
+        Parser parser =
+            new Parser(tokens);
+
+        List<Stmt> statements =
+            parser.parseProgram();
+
+        if (hadError) {
+            return;
+        }
+
+        // Evaluate the same river system once
+        // for every day in the simulation.
+        //
+        // A fresh interpreter is used for each day
+        // so variable values are recalculated using
+        // that day's flow values.
+        for (
+            int day = 1;
+            day <= days;
+            day++
+        ) {
+
+            Interpreter interpreter =
+                new Interpreter(
+                    rainfallMm,
+                    day
+                );
+
+            interpreter.interpret(
+                statements
+            );
+        }
     }
 
-    // For now we evaluate day 1.
-    int currentDay = 1;
+    static void error(
+        int line,
+        String message
+    ) {
 
-    // Execute each statement in the parsed program.
-    Interpreter interpreter = new Interpreter(
-        rainfallMm,
-        currentDay
-    );
-
-    interpreter.interpret(statements);
-}
-
-    static void error(int line, String message) {
-
-        report(line, "", message);
+        report(
+            line,
+            "",
+            message
+        );
     }
 
     private static void report(
@@ -84,8 +167,12 @@ public class Lox {
     ) {
 
         System.err.println(
-            "[line " + line + "] Error"
-            + where + ": " + message
+            "[line "
+            + line
+            + "] Error"
+            + where
+            + ": "
+            + message
         );
 
         hadError = true;
