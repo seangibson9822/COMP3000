@@ -24,12 +24,8 @@ enum TokenType {
     // Water-flow language keywords.
     HYDRO, PEAK, DAY, DECAY, AREA,
 
-    // Week 10 dam keywords.
-    DAM, CAPACITY, INITIAL, LOW, HIGH, RAIN,
-    LOW_RELEASE, NORMAL_RELEASE, HIGH_RELEASE,
-
-    // Week 11 rule-based dam syntax.
-    WHEN, OTHERWISE, RELEASE, INFLOW,
+    // Dam-management keywords.
+    DAM, RAIN, WHEN, OTHERWISE, RELEASE, INFLOW,
 
     EOF
 }

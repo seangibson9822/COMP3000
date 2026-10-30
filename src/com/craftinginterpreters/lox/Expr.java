@@ -173,81 +173,31 @@ abstract class Expr {
     }
 
     // Represents a human-controlled dam.
+    //
+    // A dam receives an incoming river expression and
+    // applies its management rules in source order.
+    //
+    // Example:
+    //
+    // dam(creek) {
+    //     release 1 when rain > 10;
+    //     release 0.5 otherwise;
+    // }
     static class Dam extends Expr {
 
         // River expression supplying water to the dam.
         final Expr inflow;
 
-        // Week 11 management rules.
+        // Ordered management rules controlling
+        // how much of the inflow is released.
         final List<DamRule> rules;
 
-        // Week 10 configuration values are retained
-        // temporarily while the language transitions
-        // to the new rule-based design.
-        final Object capacity;
-        final Object initial;
-        final Object low;
-        final Object high;
-        final Object rain;
-
-        final Object lowRelease;
-        final Object normalRelease;
-        final Object highRelease;
-
-        // Original Week 10 constructor.
-        Dam(
-            Expr inflow,
-            Object capacity,
-            Object initial,
-            Object low,
-            Object high,
-            Object rain,
-            Object lowRelease,
-            Object normalRelease,
-            Object highRelease
-        ) {
-            this.inflow = inflow;
-
-            // Week 10 dams did not contain rule objects.
-            this.rules = null;
-
-            this.capacity = capacity;
-            this.initial = initial;
-            this.low = low;
-            this.high = high;
-            this.rain = rain;
-
-            this.lowRelease = lowRelease;
-            this.normalRelease = normalRelease;
-            this.highRelease = highRelease;
-        }
-
-        // Week 11 rule-based constructor.
-        //
-        // Example:
-        //
-        // dam(creek) {
-        //     release 1 when rain > 10;
-        //     release 0.5 otherwise;
-        // }
         Dam(
             Expr inflow,
             List<DamRule> rules
         ) {
             this.inflow = inflow;
             this.rules = rules;
-
-            // The old Week 10 fields are not used
-            // by the rule-based syntax.
-            this.capacity = null;
-            this.initial = null;
-            this.low = null;
-            this.high = null;
-            this.rain = null;
-
-            this.lowRelease = null;
-            this.normalRelease = null;
-            this.highRelease = null;
         }
 
         @Override

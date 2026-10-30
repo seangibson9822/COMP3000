@@ -48,19 +48,9 @@ class Scanner {
         // Catchment area is an optional hydro parameter.
         keywords.put("area", AREA);
 
-        // Week 10 dam keywords.
+        // Dam-management keywords.
         keywords.put("dam", DAM);
-        keywords.put("capacity", CAPACITY);
-        keywords.put("initial", INITIAL);
-        keywords.put("low", LOW);
-        keywords.put("high", HIGH);
         keywords.put("rain", RAIN);
-
-        keywords.put("lowRelease", LOW_RELEASE);
-        keywords.put("normalRelease", NORMAL_RELEASE);
-        keywords.put("highRelease", HIGH_RELEASE);
-
-        // Week 11 rule-based dam keywords.
         keywords.put("when", WHEN);
         keywords.put("otherwise", OTHERWISE);
         keywords.put("release", RELEASE);
