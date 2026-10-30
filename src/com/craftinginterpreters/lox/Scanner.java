@@ -21,6 +21,7 @@ class Scanner {
     static {
         keywords = new HashMap<>();
 
+        // Standard Lox keywords.
         keywords.put("and", AND);
         keywords.put("class", CLASS);
         keywords.put("else", ELSE);
@@ -38,17 +39,16 @@ class Scanner {
         keywords.put("var", VAR);
         keywords.put("while", WHILE);
 
-        // Water-flow Language keywords.
+        // Water-flow language keywords.
         keywords.put("hydro", HYDRO);
         keywords.put("peak", PEAK);
         keywords.put("day", DAY);
         keywords.put("decay", DECAY);
 
-        // Catchamnt area is an optional parameter of a hydro literal
+        // Catchment area is an optional hydro parameter.
         keywords.put("area", AREA);
 
-
-        // Dam keywords used by the Week 10 dam syntax.
+        // Week 10 dam keywords.
         keywords.put("dam", DAM);
         keywords.put("capacity", CAPACITY);
         keywords.put("initial", INITIAL);
@@ -59,6 +59,12 @@ class Scanner {
         keywords.put("lowRelease", LOW_RELEASE);
         keywords.put("normalRelease", NORMAL_RELEASE);
         keywords.put("highRelease", HIGH_RELEASE);
+
+        // Week 11 rule-based dam keywords.
+        keywords.put("when", WHEN);
+        keywords.put("otherwise", OTHERWISE);
+        keywords.put("release", RELEASE);
+        keywords.put("inflow", INFLOW);
     }
 
     Scanner(String source) {
@@ -72,7 +78,15 @@ class Scanner {
             scanToken();
         }
 
-        tokens.add(new Token(EOF, "", null, line));
+        tokens.add(
+            new Token(
+                EOF,
+                "",
+                null,
+                line
+            )
+        );
+
         return tokens;
     }
 
@@ -81,6 +95,7 @@ class Scanner {
         char c = advance();
 
         switch (c) {
+
             case '(':
                 addToken(LEFT_PAREN);
                 break;
@@ -117,7 +132,7 @@ class Scanner {
                 addToken(PLUS);
                 break;
 
-                case '&':
+            case '&':
                 addToken(AMPERSAND);
                 break;
 
@@ -130,34 +145,60 @@ class Scanner {
                 break;
 
             case '!':
-                addToken(match('=') ? BANG_EQUAL : BANG);
+                addToken(
+                    match('=')
+                        ? BANG_EQUAL
+                        : BANG
+                );
                 break;
 
             case '=':
-                addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+                addToken(
+                    match('=')
+                        ? EQUAL_EQUAL
+                        : EQUAL
+                );
                 break;
 
             case '<':
-                addToken(match('=') ? LESS_EQUAL : LESS);
+                addToken(
+                    match('=')
+                        ? LESS_EQUAL
+                        : LESS
+                );
                 break;
 
             case '>':
+
+                // >> remains the downstream routing operator.
                 if (match('>')) {
                     addToken(RIGHT_SHIFT);
                 } else {
-                    addToken(match('=') ? GREATER_EQUAL : GREATER);
+                    addToken(
+                        match('=')
+                            ? GREATER_EQUAL
+                            : GREATER
+                    );
                 }
 
                 break;
 
             case '/':
+
+                // Ignore comments beginning with //.
                 if (match('/')) {
-                    while (peek() != '\n' && !isAtEnd()) {
+
+                    while (
+                        peek() != '\n'
+                        && !isAtEnd()
+                    ) {
                         advance();
                     }
+
                 } else {
                     addToken(SLASH);
                 }
+
                 break;
 
             case ' ':
@@ -174,13 +215,20 @@ class Scanner {
                 break;
 
             default:
+
                 if (isDigit(c)) {
                     number();
+
                 } else if (isAlpha(c)) {
                     identifier();
+
                 } else {
-                    Lox.error(line, "Unexpected character.");
+                    Lox.error(
+                        line,
+                        "Unexpected character."
+                    );
                 }
+
                 break;
         }
     }
@@ -191,10 +239,17 @@ class Scanner {
             advance();
         }
 
-        String text = source.substring(start, current);
+        String text =
+            source.substring(
+                start,
+                current
+            );
 
-        TokenType type = keywords.get(text);
+        TokenType type =
+            keywords.get(text);
 
+        // Any word that is not a keyword
+        // is treated as a normal identifier.
         if (type == null) {
             type = IDENTIFIER;
         }
@@ -208,7 +263,11 @@ class Scanner {
             advance();
         }
 
-        if (peek() == '.' && isDigit(peekNext())) {
+        // Allow decimal values such as 0.5.
+        if (
+            peek() == '.'
+            && isDigit(peekNext())
+        ) {
 
             advance();
 
@@ -219,13 +278,21 @@ class Scanner {
 
         addToken(
             NUMBER,
-            Double.parseDouble(source.substring(start, current))
+            Double.parseDouble(
+                source.substring(
+                    start,
+                    current
+                )
+            )
         );
     }
 
     private void string() {
 
-        while (peek() != '"' && !isAtEnd()) {
+        while (
+            peek() != '"'
+            && !isAtEnd()
+        ) {
 
             if (peek() == '\n') {
                 line++;
@@ -235,16 +302,28 @@ class Scanner {
         }
 
         if (isAtEnd()) {
-            Lox.error(line, "Unterminated string.");
+
+            Lox.error(
+                line,
+                "Unterminated string."
+            );
+
             return;
         }
 
+        // Consume the closing quote.
         advance();
 
         String value =
-            source.substring(start + 1, current - 1);
+            source.substring(
+                start + 1,
+                current - 1
+            );
 
-        addToken(STRING, value);
+        addToken(
+            STRING,
+            value
+        );
     }
 
     private boolean match(char expected) {
@@ -253,11 +332,15 @@ class Scanner {
             return false;
         }
 
-        if (source.charAt(current) != expected) {
+        if (
+            source.charAt(current)
+            != expected
+        ) {
             return false;
         }
 
         current++;
+
         return true;
     }
 
@@ -272,7 +355,10 @@ class Scanner {
 
     private char peekNext() {
 
-        if (current + 1 >= source.length()) {
+        if (
+            current + 1
+            >= source.length()
+        ) {
             return '\0';
         }
 
@@ -281,42 +367,68 @@ class Scanner {
 
     private boolean isAlpha(char c) {
 
-        return (c >= 'a' && c <= 'z')
-            || (c >= 'A' && c <= 'Z')
-            || c == '_';
+        return (
+            c >= 'a'
+            && c <= 'z'
+        )
+        || (
+            c >= 'A'
+            && c <= 'Z'
+        )
+        || c == '_';
     }
 
     private boolean isAlphaNumeric(char c) {
 
-        return isAlpha(c) || isDigit(c);
+        return isAlpha(c)
+            || isDigit(c);
     }
 
     private boolean isDigit(char c) {
 
-        return c >= '0' && c <= '9';
+        return c >= '0'
+            && c <= '9';
     }
 
     private boolean isAtEnd() {
 
-        return current >= source.length();
+        return current
+            >= source.length();
     }
 
     private char advance() {
 
-        return source.charAt(current++);
+        return source.charAt(
+            current++
+        );
     }
 
     private void addToken(TokenType type) {
 
-        addToken(type, null);
+        addToken(
+            type,
+            null
+        );
     }
 
-    private void addToken(TokenType type, Object literal) {
+    private void addToken(
+        TokenType type,
+        Object literal
+    ) {
 
-        String text = source.substring(start, current);
+        String text =
+            source.substring(
+                start,
+                current
+            );
 
         tokens.add(
-            new Token(type, text, literal, line)
+            new Token(
+                type,
+                text,
+                literal,
+                line
+            )
         );
     }
 }

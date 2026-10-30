@@ -777,3 +777,144 @@ This confirms that the dam syntax is recognised, parsed, stored as an `Expr.Dam`
 Using a dedicated `dam` expression keeps the language focused on the river-modelling domain instead of adding general-purpose control flow that is not currently needed.
 
 The parameters also provide a clear foundation for later dam evaluation because the dam can eventually base its release behaviour on stored water level, rainfall, and incoming river flow.
+
+
+## Week 11 – Dam Semantics and Management Rules
+
+**Date completed:** 30 October 2026  1:50pm
+
+
+### Workshop focus
+
+This week focused on adding behaviour to dams. Unlike a normal river connection, a dam is controlled by a management strategy which determines how much of the incoming water should be released.
+
+The workshop required three versions of the same dam:
+
+- always block half of the incoming water;
+- block half unless rainfall is greater than 10 mm;
+- block half unless inflow is greater than 10 L/s, where it instead blocks 75%.
+
+### Dam rule syntax
+
+I extended the Week 10 dam design into a rule-based structure.
+
+A dam still takes an incoming river expression:
+
+dam(creek) {
+    ...
+}
+
+
+Inside the dam, release rules describe its management strategy.
+
+For example:
+
+dam(creek) {
+    release 1 when rain > 10;
+    release 0.5 otherwise;
+}
+
+
+`release` represents the proportion of incoming water that leaves the dam. This means:
+
+- `release 1` releases all incoming water;
+- `release 0.5` releases half;
+- `release 0.25` releases 25% and therefore blocks 75%.
+
+I used this form instead of adding general `if` and `else` statements because it keeps the syntax specific to the water-management language.
+
+### Scanner changes
+
+I added four new keywords:
+
+when
+otherwise
+release
+inflow
+
+`rain` was already a keyword from the previous dam implementation.
+
+The existing comparison tokens such as `>`, `>=`, `<` and `<=` can now be used inside dam rules.
+
+### AST changes
+
+I added a `DamRule` representation to `Expr.java`.
+
+Each rule stores:
+
+- the source being tested (`rain` or `inflow`);
+- the comparison operator;
+- the comparison threshold;
+- the release fraction;
+- whether the rule is the final `otherwise` rule.
+
+The `Dam` expression now also stores a list of these rules in their original order.
+
+### Parser changes
+
+The parser now accepts dam rules with the following general structure:
+
+release NUMBER when rain COMPARISON NUMBER;
+release NUMBER when inflow COMPARISON NUMBER;
+release NUMBER otherwise;
+
+Every dam must contain at least one rule and must finish with an `otherwise` rule. This ensures that the dam always has a defined release behaviour.
+
+Rules are stored in order so that the interpreter can later evaluate them from top to bottom.
+
+### Example programs
+
+I created three separate Week 11 examples.
+
+#### `dam_half.lox`
+
+dam(creek) {
+    release 0.5 otherwise;
+}
+
+
+This represents a dam which always blocks half of its incoming water.
+
+#### `dam_rain.lox`
+
+dam(creek) {
+    release 1 when rain > 10;
+    release 0.5 otherwise;
+}
+
+This normally releases half of the incoming water, but releases all of it when rainfall is greater than 10 mm.
+
+#### `dam_inflow.lox`
+
+dam(creek) {
+    release 0.25 when inflow > 10;
+    release 0.5 otherwise;
+}
+
+This normally releases half of the incoming water. When inflow is greater than 10 L/s it releases only 25%, meaning that 75% is blocked.
+
+### Testing
+
+I first recompiled the interpreter:
+
+Remove-Item -Recurse -Force out -ErrorAction SilentlyContinue
+javac -d out src/com/craftinginterpreters/lox/*.java
+
+I then reran the Week 9 variable test to check that the new parser changes had not broken the previous implementation:
+
+Day 1 flow: 10.000 L/s
+
+All three new dam programs also successfully passed scanning and parsing.
+
+They currently reach:
+
+Dam evaluation has not been implemented yet.
+
+
+This is expected because `visitDamExpr()` is still deliberately acting as a placeholder. The dam-management syntax and AST representation are now complete, but evaluating the rules will be implemented as part of the final Assignment 2 work.
+
+### Reflection
+
+The new rule-based approach is more flexible than the fixed Week 10 dam parameters. Different management strategies can now be represented using the same syntax instead of requiring a new field for every possible behaviour.
+
+It also gives a clear path toward the final Assignment 2 requirements, because the interpreter can later evaluate rules based on rainfall and incoming flow before determining the downstream output.

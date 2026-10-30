@@ -1,6 +1,7 @@
 package com.craftinginterpreters.lox;
 
 enum TokenType {
+
     // Single-character tokens.
     LEFT_PAREN, RIGHT_PAREN,
     LEFT_BRACE, RIGHT_BRACE,
@@ -16,16 +17,19 @@ enum TokenType {
     // Literals.
     IDENTIFIER, STRING, NUMBER,
 
-    // Keywords.
+    // Standard Lox keywords.
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
     PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
-    // Water-flow Language keywords.
+    // Water-flow language keywords.
     HYDRO, PEAK, DAY, DECAY, AREA,
 
-    // Dam language keywords.
+    // Week 10 dam keywords.
     DAM, CAPACITY, INITIAL, LOW, HIGH, RAIN,
     LOW_RELEASE, NORMAL_RELEASE, HIGH_RELEASE,
 
-    EOF 
+    // Week 11 rule-based dam syntax.
+    WHEN, OTHERWISE, RELEASE, INFLOW,
+
+    EOF
 }

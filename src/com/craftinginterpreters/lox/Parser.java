@@ -7,9 +7,11 @@ import static com.craftinginterpreters.lox.TokenType.*;
 
 class Parser {
 
-    private static class ParseError extends RuntimeException {}
+    private static class ParseError
+        extends RuntimeException {}
 
     private final List<Token> tokens;
+
     private int current = 0;
 
     Parser(List<Token> tokens) {
@@ -17,30 +19,39 @@ class Parser {
     }
 
     // Original single-expression parser.
-    // This is kept temporarily so the existing Week 7 evaluator
-    // can continue to work while statements are being added.
+    // This is retained for compatibility with
+    // the earlier Assignment 1 parser.
     Expr parse() {
+
         try {
+
             Expr expr = expression();
 
             if (!isAtEnd()) {
-                throw error(peek(), "Expect end of expression.");
+                throw error(
+                    peek(),
+                    "Expect end of expression."
+                );
             }
 
             return expr;
+
         } catch (ParseError error) {
             return null;
         }
     }
 
-    // Parses a complete program containing multiple statements.
-    // This will become the main parser entry point once statement
-    // evaluation is connected to the interpreter.
+    // Parses a complete program containing
+    // multiple declarations and statements.
     List<Stmt> parseProgram() {
-        List<Stmt> statements = new ArrayList<>();
+
+        List<Stmt> statements =
+            new ArrayList<>();
 
         while (!isAtEnd()) {
-            statements.add(declaration());
+            statements.add(
+                declaration()
+            );
         }
 
         return statements;
@@ -51,50 +62,55 @@ class Parser {
         return route();
     }
 
-    // declaration -> "var" IDENTIFIER "=" expression ";"
+    // declaration -> "var" IDENTIFIER
+    //                "=" expression ";"
     //              | statement ;
     private Stmt declaration() {
+
         try {
+
             if (match(VAR)) {
                 return varDeclaration();
             }
 
             return statement();
+
         } catch (ParseError error) {
             return null;
         }
     }
 
-    // Parses a variable declaration.
+    // Parses:
     //
-    // Example:
-    // var creek = hydro{peak:5, day:1, decay:0.5};
+    // var creek = hydro{...};
     private Stmt varDeclaration() {
 
-        // Read the variable name.
         Token name = consume(
             IDENTIFIER,
             "Expect variable name."
         );
 
-        // Every variable declaration currently requires
-        // an initial river expression.
         consume(
             EQUAL,
             "Expect '=' after variable name."
         );
 
-        Expr initializer = expression();
+        Expr initializer =
+            expression();
 
         consume(
             SEMICOLON,
             "Expect ';' after variable declaration."
         );
 
-        return new Stmt.Var(name, initializer);
+        return new Stmt.Var(
+            name,
+            initializer
+        );
     }
 
-    // statement -> "print" "(" expression ")" ";"
+    // statement -> "print"
+    //              "(" expression ")" ";"
     //            | expression ";" ;
     private Stmt statement() {
 
@@ -115,7 +131,8 @@ class Parser {
             "Expect '(' after 'print'."
         );
 
-        Expr value = expression();
+        Expr value =
+            expression();
 
         consume(
             RIGHT_PAREN,
@@ -130,101 +147,126 @@ class Parser {
         return new Stmt.Print(value);
     }
 
-    // Allows a normal river expression to be used as a statement.
+    // Allows a river expression to be used
+    // as a normal statement.
     //
     // Example:
     // hydro{peak:5, day:1, decay:0.5};
-    
     private Stmt expressionStatement() {
 
-    Expr expr = expression();
+        Expr expr =
+            expression();
 
+        // Require semicolons between statements,
+        // but allow the final expression in an old
+        // Assignment 1 file to omit one.
+        if (!isAtEnd()) {
 
-    if (!isAtEnd()) {
-        consume(
-            SEMICOLON,
-            "Expect ';' after expression."
-        );
+            consume(
+                SEMICOLON,
+                "Expect ';' after expression."
+            );
+        }
+
+        return new Stmt.Expression(expr);
     }
 
-    return new Stmt.Expression(expr);
-}
-
-    // route -> confluence ( ">>" confluence )* ;
+    // route -> confluence
+    //          ( ">>" confluence )* ;
     private Expr route() {
-        Expr expr = confluence();
+
+        Expr expr =
+            confluence();
 
         while (match(RIGHT_SHIFT)) {
-            Token operator = previous();
-            Expr right = confluence();
 
-            expr = new Expr.Binary(
-                expr,
-                operator,
-                right
-            );
+            Token operator =
+                previous();
+
+            Expr right =
+                confluence();
+
+            expr =
+                new Expr.Binary(
+                    expr,
+                    operator,
+                    right
+                );
         }
 
         return expr;
     }
 
-    // confluence -> primary ( "&" primary )* ;
+    // confluence -> primary
+    //               ( "&" primary )* ;
     private Expr confluence() {
-        Expr expr = primary();
+
+        Expr expr =
+            primary();
 
         while (match(AMPERSAND)) {
-            Token operator = previous();
-            Expr right = primary();
 
-            expr = new Expr.Binary(
-                expr,
-                operator,
-                right
-            );
+            Token operator =
+                previous();
+
+            Expr right =
+                primary();
+
+            expr =
+                new Expr.Binary(
+                    expr,
+                    operator,
+                    right
+                );
         }
 
         return expr;
     }
 
-  
     // primary -> hydro
-//          | dam
-//          | IDENTIFIER
-//          | "(" expression ")" ;
-private Expr primary() {
+    //          | dam
+    //          | IDENTIFIER
+    //          | "(" expression ")" ;
+    private Expr primary() {
 
-    // Parse a normal river-response literal.
-    if (match(HYDRO)) {
-        return hydro();
-    }
+        // Parse a normal river response.
+        if (match(HYDRO)) {
+            return hydro();
+        }
 
-    // Parse a human-controlled dam.
-    if (match(DAM)) {
-        return dam();
-    }
+        // Parse a human-controlled dam.
+        if (match(DAM)) {
+            return dam();
+        }
 
-    // An identifier refers to a previously declared variable.
-    if (match(IDENTIFIER)) {
-        return new Expr.Variable(previous());
-    }
+        // An identifier refers to a
+        // previously declared variable.
+        if (match(IDENTIFIER)) {
 
-    // Parentheses group an expression.
-    if (match(LEFT_PAREN)) {
-        Expr expr = expression();
+            return new Expr.Variable(
+                previous()
+            );
+        }
 
-        consume(
-            RIGHT_PAREN,
-            "Expect ')' after expression."
+        // Parentheses group an expression.
+        if (match(LEFT_PAREN)) {
+
+            Expr expr =
+                expression();
+
+            consume(
+                RIGHT_PAREN,
+                "Expect ')' after expression."
+            );
+
+            return new Expr.Grouping(expr);
+        }
+
+        throw error(
+            peek(),
+            "Expect river expression."
         );
-
-        return new Expr.Grouping(expr);
     }
-
-    throw error(
-        peek(),
-        "Expect river expression."
-    );
-}
 
     // hydro -> "hydro" "{"
     //          "peak" ":" NUMBER ","
@@ -239,7 +281,7 @@ private Expr primary() {
             "Expect '{' after 'hydro'."
         );
 
-        // Read the peak flow response.
+        // Peak flow response.
         consume(
             PEAK,
             "Expect 'peak'."
@@ -250,17 +292,18 @@ private Expr primary() {
             "Expect ':' after 'peak'."
         );
 
-        Object peak = consume(
-            NUMBER,
-            "Expect peak value."
-        ).literal;
+        Object peak =
+            consume(
+                NUMBER,
+                "Expect peak value."
+            ).literal;
 
         consume(
             COMMA,
             "Expect ',' after peak value."
         );
 
-        // Read the day on which the peak flow occurs.
+        // Day on which peak flow occurs.
         consume(
             DAY,
             "Expect 'day'."
@@ -271,18 +314,19 @@ private Expr primary() {
             "Expect ':' after 'day'."
         );
 
-        Object day = consume(
-            NUMBER,
-            "Expect day value."
-        ).literal;
+        Object day =
+            consume(
+                NUMBER,
+                "Expect day value."
+            ).literal;
 
         consume(
             COMMA,
             "Expect ',' after day value."
         );
 
-        // Read the proportion of flow retained
-        // on each following day.
+        // Proportion retained on each
+        // following day.
         consume(
             DECAY,
             "Expect 'decay'."
@@ -293,17 +337,17 @@ private Expr primary() {
             "Expect ':' after 'decay'."
         );
 
-        Object decay = consume(
-            NUMBER,
-            "Expect decay value."
-        ).literal;
+        Object decay =
+            consume(
+                NUMBER,
+                "Expect decay value."
+            ).literal;
 
-        // Area defaults to 1.0 so Assignment 1 programs
-        // without an area parameter remain valid.
+        // Existing Assignment 1 programs
+        // default to an area of 1.
         Object area = 1.0;
 
-        // If another comma follows decay, parse
-        // the optional catchment area.
+        // Optional catchment area.
         if (match(COMMA)) {
 
             consume(
@@ -316,10 +360,11 @@ private Expr primary() {
                 "Expect ':' after 'area'."
             );
 
-            area = consume(
-                NUMBER,
-                "Expect area value."
-            ).literal;
+            area =
+                consume(
+                    NUMBER,
+                    "Expect area value."
+                ).literal;
         }
 
         consume(
@@ -335,226 +380,233 @@ private Expr primary() {
         );
     }
 
-// dam -> "dam" "(" expression ")" "{"
-//        "capacity" ":" NUMBER ","
-//        "initial" ":" NUMBER ","
-//        "low" ":" NUMBER ","
-//        "high" ":" NUMBER ","
-//        "rain" ":" NUMBER ","
-//        "lowRelease" ":" NUMBER ","
-//        "normalRelease" ":" NUMBER ","
-//        "highRelease" ":" NUMBER
-//        "}" ;
-private Expr dam() {
+    // dam -> "dam" "(" expression ")" "{"
+    //        damRule+
+    //        "}" ;
+    //
+    // damRule -> "release" NUMBER "when"
+    //            damSource comparison NUMBER ";"
+    //          | "release" NUMBER
+    //            "otherwise" ";" ;
+    //
+    // damSource -> "rain"
+    //            | "inflow" ;
+    //
+    // comparison -> ">"
+    //             | ">="
+    //             | "<"
+    //             | "<=" ;
+    private Expr dam() {
 
-    // The expression inside dam(...) supplies the incoming flow.
-    consume(
-        LEFT_PAREN,
-        "Expect '(' after 'dam'."
-    );
+        // dam(...) receives a river
+        // expression as its inflow.
+        consume(
+            LEFT_PAREN,
+            "Expect '(' after 'dam'."
+        );
 
-    Expr inflow = expression();
+        Expr inflow =
+            expression();
 
-    consume(
-        RIGHT_PAREN,
-        "Expect ')' after dam inflow."
-    );
+        consume(
+            RIGHT_PAREN,
+            "Expect ')' after dam inflow."
+        );
 
-    consume(
-        LEFT_BRACE,
-        "Expect '{' after dam inflow."
-    );
+        consume(
+            LEFT_BRACE,
+            "Expect '{' after dam inflow."
+        );
 
-    // Maximum amount of water the dam can store.
-    consume(
-        CAPACITY,
-        "Expect 'capacity'."
-    );
+        // Rules are retained in source order
+        // because the first matching rule can
+        // later determine the dam output.
+        List<Expr.DamRule> rules =
+            new ArrayList<>();
 
-    consume(
-        COLON,
-        "Expect ':' after 'capacity'."
-    );
+        boolean foundOtherwise =
+            false;
 
-    Object capacity = consume(
-        NUMBER,
-        "Expect capacity value."
-    ).literal;
+        while (
+            !check(RIGHT_BRACE)
+            && !isAtEnd()
+        ) {
 
-    consume(
-        COMMA,
-        "Expect ',' after capacity value."
-    );
+            // Every management rule starts
+            // with its release fraction.
+            consume(
+                RELEASE,
+                "Expect 'release' at start of dam rule."
+            );
 
-    // Starting water level in the dam.
-    consume(
-        INITIAL,
-        "Expect 'initial'."
-    );
+            Object release =
+                consume(
+                    NUMBER,
+                    "Expect release fraction."
+                ).literal;
 
-    consume(
-        COLON,
-        "Expect ':' after 'initial'."
-    );
+            // Conditional rule:
+            //
+            // release 1 when rain > 10;
+            if (match(WHEN)) {
 
-    Object initial = consume(
-        NUMBER,
-        "Expect initial value."
-    ).literal;
+                // Otherwise must remain the
+                // final rule in the block.
+                if (foundOtherwise) {
 
-    consume(
-        COMMA,
-        "Expect ',' after initial value."
-    );
+                    throw error(
+                        peek(),
+                        "No dam rules allowed after 'otherwise'."
+                    );
+                }
 
-    // Lower water-level threshold.
-    consume(
-        LOW,
-        "Expect 'low'."
-    );
+                Token source;
 
-    consume(
-        COLON,
-        "Expect ':' after 'low'."
-    );
+                // Week 11 rules can inspect
+                // rainfall or incoming flow.
+                if (match(RAIN, INFLOW)) {
 
-    Object low = consume(
-        NUMBER,
-        "Expect low threshold."
-    ).literal;
+                    source =
+                        previous();
 
-    consume(
-        COMMA,
-        "Expect ',' after low threshold."
-    );
+                } else {
 
-    // Upper water-level threshold.
-    consume(
-        HIGH,
-        "Expect 'high'."
-    );
+                    throw error(
+                        peek(),
+                        "Expect 'rain' or 'inflow' after 'when'."
+                    );
+                }
 
-    consume(
-        COLON,
-        "Expect ':' after 'high'."
-    );
+                Token operator;
 
-    Object high = consume(
-        NUMBER,
-        "Expect high threshold."
-    ).literal;
+                if (
+                    match(
+                        GREATER,
+                        GREATER_EQUAL,
+                        LESS,
+                        LESS_EQUAL
+                    )
+                ) {
 
-    consume(
-        COMMA,
-        "Expect ',' after high threshold."
-    );
+                    operator =
+                        previous();
 
-    // Rainfall level considered significant by the dam policy.
-    consume(
-        RAIN,
-        "Expect 'rain'."
-    );
+                } else {
 
-    consume(
-        COLON,
-        "Expect ':' after 'rain'."
-    );
+                    throw error(
+                        peek(),
+                        "Expect comparison operator in dam rule."
+                    );
+                }
 
-    Object rain = consume(
-        NUMBER,
-        "Expect rain threshold."
-    ).literal;
+                Object threshold =
+                    consume(
+                        NUMBER,
+                        "Expect comparison value."
+                    ).literal;
 
-    consume(
-        COMMA,
-        "Expect ',' after rain threshold."
-    );
+                consume(
+                    SEMICOLON,
+                    "Expect ';' after dam rule."
+                );
 
-    // Release fraction used when the dam level is low.
-    consume(
-        LOW_RELEASE,
-        "Expect 'lowRelease'."
-    );
+                rules.add(
+                    new Expr.DamRule(
+                        source,
+                        operator,
+                        threshold,
+                        release,
+                        false
+                    )
+                );
+            }
 
-    consume(
-        COLON,
-        "Expect ':' after 'lowRelease'."
-    );
+            // Fallback rule:
+            //
+            // release 0.5 otherwise;
+            else if (match(OTHERWISE)) {
 
-    Object lowRelease = consume(
-        NUMBER,
-        "Expect low release fraction."
-    ).literal;
+                foundOtherwise =
+                    true;
 
-    consume(
-        COMMA,
-        "Expect ',' after low release fraction."
-    );
+                consume(
+                    SEMICOLON,
+                    "Expect ';' after otherwise rule."
+                );
 
-    // Release fraction used during normal conditions.
-    consume(
-        NORMAL_RELEASE,
-        "Expect 'normalRelease'."
-    );
+                rules.add(
+                    new Expr.DamRule(
+                        null,
+                        null,
+                        null,
+                        release,
+                        true
+                    )
+                );
 
-    consume(
-        COLON,
-        "Expect ':' after 'normalRelease'."
-    );
+                // Otherwise is always the
+                // final management rule.
+                if (!check(RIGHT_BRACE)) {
 
-    Object normalRelease = consume(
-        NUMBER,
-        "Expect normal release fraction."
-    ).literal;
+                    throw error(
+                        peek(),
+                        "'otherwise' must be the final dam rule."
+                    );
+                }
+            }
 
-    consume(
-        COMMA,
-        "Expect ',' after normal release fraction."
-    );
+            else {
 
-    // Release fraction used during high-water conditions.
-    consume(
-        HIGH_RELEASE,
-        "Expect 'highRelease'."
-    );
+                throw error(
+                    peek(),
+                    "Expect 'when' or 'otherwise' after release fraction."
+                );
+            }
+        }
 
-    consume(
-        COLON,
-        "Expect ':' after 'highRelease'."
-    );
+        // A dam cannot contain an
+        // empty management block.
+        if (rules.isEmpty()) {
 
-    Object highRelease = consume(
-        NUMBER,
-        "Expect high release fraction."
-    ).literal;
+            throw error(
+                peek(),
+                "Dam must contain at least one release rule."
+            );
+        }
 
-    consume(
-        RIGHT_BRACE,
-        "Expect '}' after dam configuration."
-    );
+        // Every dam requires a fallback
+        // so its behaviour is always defined.
+        if (!foundOtherwise) {
 
-    return new Expr.Dam(
-        inflow,
-        capacity,
-        initial,
-        low,
-        high,
-        rain,
-        lowRelease,
-        normalRelease,
-        highRelease
-    );
-}
+            throw error(
+                peek(),
+                "Dam requires an 'otherwise' release rule."
+            );
+        }
 
+        consume(
+            RIGHT_BRACE,
+            "Expect '}' after dam rules."
+        );
 
-    // Checks whether the current token matches any
-    // of the supplied token types.
-    private boolean match(TokenType... types) {
+        return new Expr.Dam(
+            inflow,
+            rules
+        );
+    }
+
+    // Checks whether the current token
+    // matches any supplied type.
+    private boolean match(
+        TokenType... types
+    ) {
 
         for (TokenType type : types) {
 
             if (check(type)) {
+
                 advance();
+
                 return true;
             }
         }
@@ -562,8 +614,7 @@ private Expr dam() {
         return false;
     }
 
-    // Requires a particular token and consumes it.
-    // If it is not present, a parse error is produced.
+    // Requires a particular token.
     private Token consume(
         TokenType type,
         String message
@@ -579,14 +630,18 @@ private Expr dam() {
         );
     }
 
-    // Looks at the current token without consuming it.
-    private boolean check(TokenType type) {
+    // Look at the current token
+    // without consuming it.
+    private boolean check(
+        TokenType type
+    ) {
 
         if (isAtEnd()) {
             return false;
         }
 
-        return peek().type == type;
+        return peek().type
+            == type;
     }
 
     // Move to the next token.
@@ -599,23 +654,31 @@ private Expr dam() {
         return previous();
     }
 
-    // Check whether the parser has reached EOF.
+    // Check for EOF.
     private boolean isAtEnd() {
-        return peek().type == EOF;
+
+        return peek().type
+            == EOF;
     }
 
-    // Return the current token without consuming it.
+    // Current token.
     private Token peek() {
-        return tokens.get(current);
+
+        return tokens.get(
+            current
+        );
     }
 
-    // Return the most recently consumed token.
+    // Most recently consumed token.
     private Token previous() {
-        return tokens.get(current - 1);
+
+        return tokens.get(
+            current - 1
+        );
     }
 
-    // Report a parser error through the existing
-    // Lox error-reporting system.
+    // Report a parser error using
+    // the existing Lox error system.
     private ParseError error(
         Token token,
         String message
